@@ -1,5 +1,5 @@
-# KontitkiPoseProject
-Pose estimation project for Virtual Physio
+# Workout Buddy
+AI based application that keeps track of all your workout activities
 
 ### Dependencies
 *   Python 3.6
