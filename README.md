@@ -21,3 +21,6 @@ AI based application that keeps track of all your workout activities
     []  Jumping Jacks
     []  Pushups
     []  Mountain Climbers
+
+### References
+[Ildoo Kim](https://github.com/ildoonet/tf-pose-estimation)
