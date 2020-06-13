@@ -18,7 +18,7 @@ AI based application that keeps track of all your workout activities
 ### Tasks
     [x] Squats
     [x]  Arm Raise
-    []  Jumping Jacks
+    [x]  Bench Press
     []  Pushups
     []  Mountain Climbers
 
