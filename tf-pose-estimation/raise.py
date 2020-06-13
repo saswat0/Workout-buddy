@@ -7,8 +7,6 @@ from scipy import ndimage
 from tf_pose.estimator import TfPoseEstimator
 from tf_pose.networks import get_graph_path, model_wh
 
-# python custom.py --model=mobilenet_thin --resize=432x368
-
 
 def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
@@ -53,11 +51,11 @@ if __name__ == '__main__':
         e = TfPoseEstimator(get_graph_path(model), target_size=(
             432, 368), trt_bool=str2bool(tensorrt))
 
-    cam = cv2.VideoCapture(vidlocation)
+    cam = cv2.VideoCapture(0)
 
-    count_of_squats = 0
-    squat_pos = 0
-    prev_squat_pos = 0
+    count_of_raises = 0
+    raise_pos = 0
+    prev_raise_pos = 0
 
     i = 0
     while True:
@@ -68,10 +66,6 @@ if __name__ == '__main__':
             print("Video file not found")
             break
 
-        i += 1
-        if i < 360:
-            continue
-
         humans = e.inference(image, resize_to_default=(
             w > 0 and h > 0), upsample_size=resize_out_ratio)
 
@@ -80,32 +74,27 @@ if __name__ == '__main__':
             continue
 
         try:
+            center_1 = (int(humans[0].body_parts[1].x * w),
+                        int(humans[0].body_parts[1].y * h))  # sternum
             center_5 = (int(humans[0].body_parts[5].x * w),
-                        int(humans[0].body_parts[5].y * h))       # Left shoulder
-            center_11 = (int(humans[0].body_parts[11].x * w),
-                            int(humans[0].body_parts[11].y * h))  # left hip
-            center_12 = (int(humans[0].body_parts[12].x * w),
-                            int(humans[0].body_parts[12].y * h))  # left knee
-            center_13 = (int(humans[0].body_parts[13].x * w),
-                            int(humans[0].body_parts[13].y * h))  # left ankle
+                        int(humans[0].body_parts[5].y * h))  # left shoulder
+            center_6 = (int(humans[0].body_parts[6].x * w),
+                        int(humans[0].body_parts[6].y * h))  # left elbow
 
-            squat_left_angle_1 = angle_between_points(
-                center_5, center_11, center_12)
-            squat_left_angle_2 = angle_between_points(
-                center_11, center_12, center_13)
-
-            if squat_left_angle_2 >= 90 and squat_left_angle_2 <= 100 and squat_left_angle_1 >= 85 and squat_left_angle_1 <= 95:
-                squat_pos = 1
-                fontColor = (0, 255, 0)
+            raise_angle = angle_between_points(center_1, center_5, center_6)
+        
+            if raise_angle >= 150:
+                raise_pos = 1
+                fontColor = (0,255,0)
             else:
-                fontColor = (0, 0, 255)
-                squat_pos = 0
+                fontColor = (0,0,255)
+                raise_pos = 0
+            
+            if prev_raise_pos - raise_pos == 1:
+                count_of_raises +=1
+            prev_raise_pos = raise_pos
 
-            if prev_squat_pos - squat_pos == 1:
-                count_of_squats += 1
-            prev_squat_pos = squat_pos
-
-            cv2.putText(image, 'Number of squats: ' + str(count_of_squats),
+            cv2.putText(image, 'Number of raises: ' + str(count_of_raises),
                         (0, 0),
                         font,
                         fontScale,
@@ -113,38 +102,19 @@ if __name__ == '__main__':
                         lineType,
                         thickness
                         )
-            cv2.putText(image, 'Angle of hip joint: ' + str(round(squat_left_angle_1, 1)),
+            cv2.putText(image, 'Angle of shoulder: ' + str(round(raise_angle, 1)),
                         # (100, 200),
-                        center_11,
+                        center_5,
                         font,
                         fontScale,
                         fontColor,
                         lineType,
                         thickness
                         )
-            cv2.putText(image, 'Angle of knee joint: ' + str(round(squat_left_angle_2, 1)),
-                        # (100, 300),
-                        center_12,
-                        font,
-                        fontScale,
-                        fontColor,
-                        lineType,
-                        thickness
-                        )
-
-            # cv2.putText(image, 'Squat position: ' + str('Yes' if squat_pos == 1 else 'No'),
-            #             (100, 400),
-            #             font,
-            #             fontScale,
-            #             fontColor,
-            #             lineType,
-            #             thickness
-            #             )
-
         except:
             print("Incorrect camera dimensions")
 
-        # image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
+        image = TfPoseEstimator.draw_humans(image, humans, imgcopy=False)
 
         cv2.imshow('tf-pose-estimation result',
                    cv2.resize(image, (0, 0), fx=0.5, fy=0.5))
