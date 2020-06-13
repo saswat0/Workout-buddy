@@ -19,8 +19,8 @@ AI based application that keeps track of all your workout activities
 *   [x] Squats
 *   [x]  Arm Raise
 *   [x]  Bench Press
-*   []  Pushups
-*   []  Mountain Climbers
+*   [.]  Pushups
+*   [.]  Mountain Climbers
 
 ### References
 [Ildoo Kim](https://github.com/ildoonet/tf-pose-estimation)
